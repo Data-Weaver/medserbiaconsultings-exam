@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Μελέτη Ερωτήσεων | Med Serbia</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --primary: #1e3a5f; --primary-dark: #0f2744; --accent: #4fc3f7; --success: #4caf50; --error: #ef5350; --bg: #f0f4f8; --card: #ffffff; --text: #1a1a2e; --text-light: #64748b; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-user-select: none; user-select: none; }
+    .header { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: white; padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; }
+    .header h1 { font-size: 1.15rem; font-weight: 700; }
+    .header a { color: white; text-decoration: none; font-size: 0.8rem; font-weight: 600; background: rgba(255,255,255,0.15); padding: 0.4rem 0.8rem; border-radius: 8px; margin-left: 0.5rem; }
+    .container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    .card { background: var(--card); border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 1.5rem; }
+    .card h2 { font-size: 1.5rem; margin-bottom: 1rem; color: var(--primary); }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
+    .form-group input { width: 100%; padding: 0.75rem 1rem; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; font-family: inherit; }
+    .form-group input:focus { outline: none; border-color: var(--accent); }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.85rem 2rem; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; font-family: inherit; cursor: pointer; background: var(--primary); color: white; }
+    .btn:hover { background: var(--primary-dark); }
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .tab { padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; border: 2px solid #e2e8f0; background: white; }
+    .tab.active-bio { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
+    .tab.active-chem { background: #e3f2fd; border-color: #1565c0; color: #1565c0; }
+    .score-bar { position: sticky; top: 0; z-index: 100; background: white; padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 0 0 12px 12px; margin-bottom: 1rem; }
+    .score-text { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+    .progress-bg { width: 100%; height: 4px; background: #e2e8f0; border-radius: 2px; margin-top: 0.5rem; }
+    .progress-fg { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+    .qcard { background: var(--card); border-radius: 16px; padding: 1.5rem; margin-bottom: 0.75rem; border: 1px solid #e2e8f0; }
+    .qnum { font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 0.4rem; }
+    .qtxt { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; line-height: 1.5; }
+    .opts { display: flex; flex-direction: column; gap: 0.35rem; }
+    .opt { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.85rem; cursor: pointer; }
+    .opt:hover { border-color: var(--accent); background: #f0f9ff; }
+    .opt.lk { pointer-events: none; opacity: 0.7; }
+    .opt.lk.ok, .opt.lk.no { opacity: 1; }
+    .opt.ok { border-color: var(--success); background: #e8f5e9; }
+    .opt.ok .ol { background: var(--success); color: white; }
+    .opt.no { border-color: var(--error); background: #ffebee; }
+    .opt.no .ol { background: var(--error); color: white; }
+    .ol { width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+    .fb { margin-top: 0.5rem; padding: 0.4rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.8rem; }
+    .fb.g { background: #e8f5e9; color: #2e7d32; }
+    .fb.r { background: #ffebee; color: #c62828; }
+    .screen { display: none; } .screen.active { display: block; }
+    .final { background: linear-gradient(135deg, #0f2744, #1e3a5f); border-radius: 20px; padding: 2rem; color: white; text-align: center; margin: 2rem 0; }
+    .final .big { font-size: 3.5rem; font-weight: 800; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📚 Med Serbia - Μελέτη</h1>
+    <div><a href="/">📝 Τεστ</a><a href="/admin.html">⚙️ Admin</a></div>
+  </div>
+
+  <div id="screen-name" class="screen active">
+    <div class="container">
+      <div class="card" style="max-width:500px; margin:3rem auto;">
+        <h2>📚 Μελέτη Ερωτήσεων</h2>
+        <p style="color:var(--text-light); margin-bottom:1.5rem;">Εισάγετε τον κωδικό πρόσβασης και τα στοιχεία σας.</p>
+        <div id="study-error" style="background:#ffebee;color:#ef5350;padding:0.75rem;border-radius:8px;margin-bottom:1rem;font-weight:500;display:none;"></div>
+        <div class="form-group">
+          <label>Ονοματεπώνυμο</label>
+          <input type="text" id="study-name" placeholder="π.χ. Γιάννης Παπαδόπουλος">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="study-email" placeholder="π.χ. example@email.com">
+        </div>
+        <button class="btn" onclick="beginStudy()">Ξεκινήστε</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen-study" class="screen">
+    <div class="container">
+      <div class="tabs">
+        <div class="tab active-bio" id="tab-bio" onclick="showCat('biology')">🧬 Βιολογία (<span id="bio-score">0</span>/<span id="bio-total">0</span>)</div>
+        <div class="tab" id="tab-chem" onclick="showCat('chemistry')">⚗️ Χημεία (<span id="chem-score">0</span>/<span id="chem-total">0</span>)</div>
+      </div>
+      <div class="score-bar">
+        <div>
+          <div class="score-text">✅ <span id="sc">0</span> / <span id="st">0</span> σωστές</div>
+          <div class="progress-bg"><div class="progress-fg" id="pf" style="width:0%"></div></div>
+        </div>
+        <div style="font-size:0.85rem; color:var(--text-light); font-weight:600;"><span id="ac">0</span> / <span id="at">0</span></div>
+      </div>
+      <div id="qcontainer"></div>
+      <div id="final-box"></div>
+    </div>
+  </div>
+
+  <script>
+    let allQ = [], bioQ = [], chemQ = [];
+    let bioAns = {}, chemAns = {};
+    let bioCorrect = 0, chemCorrect = 0;
+    let currentCat = 'biology';
+    let userName = '';
+    let userEmail = '';
+    let tabSwitchCount = 0;
+
+    async function beginStudy() {
+      userName = document.getElementById('study-name').value.trim();
+      userEmail = document.getElementById('study-email').value.trim();
+      if (!userName || !userEmail) return showStudyError('Συμπληρώστε όλα τα πεδία.');
+
+      // Check if exam is active
+      try {
+        var res = await fetch('/api/check-study-access');
+        var data = await res.json();
+        if (data.blocked) return showStudyError(data.reason);
+      } catch(e) { return showStudyError('Σφάλμα σύνδεσης.'); }
+
+      document.getElementById('screen-name').classList.remove('active');
+      document.getElementById('screen-study').classList.add('active');
+      loadAll();
+    }
+
+    function showStudyError(msg) {
+      var el = document.getElementById('study-error');
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(function() { el.style.display = 'none'; }, 5000);
+    }
+
+    async function loadAll() {
+      const res = await fetch('/api/study-questions');
+      const data = await res.json();
+      allQ = data.questions;
+      bioQ = allQ.filter(q => q.category === 'biology');
+      chemQ = allQ.filter(q => q.category === 'chemistry');
+      document.getElementById('bio-total').textContent = bioQ.length;
+      document.getElementById('chem-total').textContent = chemQ.length;
+      showCat('biology');
+    }
+
+    function showCat(cat) {
+      currentCat = cat;
+      document.getElementById('tab-bio').className = cat === 'biology' ? 'tab active-bio' : 'tab';
+      document.getElementById('tab-chem').className = cat === 'chemistry' ? 'tab active-chem' : 'tab';
+      updateScoreBar();
+      renderQuestions();
+    }
+
+    function getAns() { return currentCat === 'biology' ? bioAns : chemAns; }
+    function getCorrect() { return currentCat === 'biology' ? bioCorrect : chemCorrect; }
+    function getQs() { return currentCat === 'biology' ? bioQ : chemQ; }
+
+    function updateScoreBar() {
+      const qs = getQs(), ans = getAns(), cor = getCorrect();
+      const cnt = Object.keys(ans).length;
+      document.getElementById('sc').textContent = cor;
+      document.getElementById('st').textContent = qs.length;
+      document.getElementById('ac').textContent = cnt;
+      document.getElementById('at').textContent = qs.length;
+      document.getElementById('pf').style.width = (qs.length > 0 ? cnt / qs.length * 100 : 0) + '%';
+      document.getElementById('bio-score').textContent = bioCorrect;
+      document.getElementById('chem-score').textContent = chemCorrect;
+    }
+
+    function renderQuestions() {
+      const qs = getQs(), ans = getAns();
+      document.getElementById('final-box').innerHTML = '';
+      document.getElementById('qcontainer').innerHTML = qs.map((q, i) => {
+        const a = ans[q.id];
+        if (a) {
+          return `<div class="qcard"><div class="qnum">Ερώτηση ${i+1} / ${qs.length}</div><div class="qtxt">${q.question_text}</div>
+            <div class="opts">${['A','B','C','D'].map(l => {
+              let c = 'lk';
+              if (l === a.correct) c += ' ok';
+              else if (l === a.selected && !a.isCorrect) c += ' no';
+              return `<div class="opt ${c}"><div class="ol">${l}</div><div>${q['option_'+l.toLowerCase()]}</div></div>`;
+            }).join('')}</div>
+            <div class="fb ${a.isCorrect ? 'g' : 'r'}">${a.isCorrect ? '✅ Σωστή!' : '❌ Λάθος — Σωστή: '+a.correct}</div></div>`;
+        }
+        return `<div class="qcard" id="qc-${q.id}"><div class="qnum">Ερώτηση ${i+1} / ${qs.length}</div><div class="qtxt">${q.question_text}</div>
+          <div class="opts" id="op-${q.id}">${['A','B','C','D'].map(l =>
+            `<div class="opt" onclick="pick(${q.id},'${l}','${q.correct_answer}')"><div class="ol">${l}</div><div>${q['option_'+l.toLowerCase()]}</div></div>`
+          ).join('')}</div></div>`;
+      }).join('');
+
+      if (Object.keys(ans).length === qs.length && qs.length > 0) showFinal();
+    }
+
+    function pick(qId, selected, correct) {
+      const ans = getAns();
+      if (ans[qId]) return;
+      const isCorrect = selected === correct;
+      ans[qId] = { selected, correct, isCorrect };
+      if (isCorrect) {
+        if (currentCat === 'biology') bioCorrect++; else chemCorrect++;
+      }
+      // Save to server
+      fetch('/api/study-answer', { method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ fullName: userName, email: userEmail, questionId: qId, selectedAnswer: selected, isCorrect, category: currentCat })
+      });
+
+      updateScoreBar();
+      // Re-render just this card
+      const q = getQs().find(x => x.id === qId);
+      const card = document.getElementById('qc-' + qId);
+      document.getElementById('op-' + qId).innerHTML = ['A','B','C','D'].map(l => {
+        let c = 'lk';
+        if (l === correct) c += ' ok';
+        else if (l === selected && !isCorrect) c += ' no';
+        return `<div class="opt ${c}"><div class="ol">${l}</div><div>${q['option_'+l.toLowerCase()]}</div></div>`;
+      }).join('');
+      card.insertAdjacentHTML('beforeend', `<div class="fb ${isCorrect?'g':'r'}">${isCorrect ? '✅ Σωστή!' : '❌ Λάθος — Σωστή: '+correct}</div>`);
+
+      if (Object.keys(ans).length === getQs().length) showFinal();
+    }
+
+    function showFinal() {
+      const cor = getCorrect(), tot = getQs().length;
+      const pct = Math.round((cor / tot) * 100);
+      const label = currentCat === 'biology' ? 'Βιολογία' : 'Χημεία';
+      const totalCorrect = bioCorrect + chemCorrect;
+      const totalAnswered = Object.keys(bioAns).length + Object.keys(chemAns).length;
+      const totalPct = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+      document.getElementById('final-box').innerHTML = `
+        <div class="final">
+          <p style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.1em;color:#4fc3f7;font-weight:700;">Σκορ — ${label}</p>
+          <div class="big">${pct}%</div>
+          <div style="color:#94a3b8;margin-top:0.25rem;">${cor} / ${tot} σωστές</div>
+          ${totalAnswered > tot ? '<div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.15);"><p style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.1em;color:#4fc3f7;font-weight:700;">Συνολικό Σκορ</p><div style="font-size:2.5rem;font-weight:800;margin:0.25rem 0;">' + totalPct + '%</div><div style="color:#94a3b8;">🧬 Βιολογία: ' + bioCorrect + '/' + Object.keys(bioAns).length + ' · ⚗️ Χημεία: ' + chemCorrect + '/' + Object.keys(chemAns).length + '</div></div>' : ''}
+          <div style="margin-top:1.5rem;">
+            <button onclick="resetCategory()" style="background:#4fc3f7;color:white;border:none;padding:0.75rem 2rem;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;">🔄 Ξανά από την αρχή (${label})</button>
+          </div>
+        </div>`;
+    }
+
+    function resetCategory() {
+      if (currentCat === 'biology') { bioAns = {}; bioCorrect = 0; }
+      else { chemAns = {}; chemCorrect = 0; }
+      updateScoreBar();
+      renderQuestions();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Tab protection
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && document.getElementById('screen-study').classList.contains('active')) {
+        tabSwitchCount++;
+        let b = document.getElementById('tw');
+        if (!b) { b = document.createElement('div'); b.id = 'tw'; b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#ef5350;color:white;padding:1rem;font-weight:600;text-align:center;'; document.body.appendChild(b); }
+        if (tabSwitchCount >= 3) { b.textContent = '🚫 Κλειδώθηκε!'; document.querySelectorAll('.opt:not(.lk)').forEach(el => el.style.pointerEvents = 'none'); }
+        else { b.textContent = `⚠️ Αλλαγή καρτέλας (${tabSwitchCount}/3)`; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 4000); }
+      }
+    });
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('copy', e => e.preventDefault());
+    document.addEventListener('cut', e => e.preventDefault());
+    document.addEventListener('paste', e => e.preventDefault());
+    document.addEventListener('keydown', e => { if ((e.ctrlKey||e.metaKey) && ['c','v','x','a','u','s'].includes(e.key.toLowerCase())) e.preventDefault(); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+node_modules/
+exam.db
+exam.db-shm
+exam.db-wal
