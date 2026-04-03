@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel | Med Serbia Exam</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #1e3a5f; --primary-dark: #0f2744; --accent: #4fc3f7;
+      --success: #4caf50; --error: #ef5350; --bg: #f0f4f8; --card: #fff; --text: #1a1a2e; --text-light: #64748b;
+    }
+    [data-theme="dark"] {
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      color: white; padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .header h1 { font-size: 1.25rem; }
+
+    .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+
+    .card {
+      background: var(--card); border-radius: 16px; padding: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
+    }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: var(--card); border-radius: 12px; padding: 1.25rem; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+    .stat-card .num { font-size: 2rem; font-weight: 800; color: var(--primary); }
+    .stat-card .label { font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.25rem;
+      border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600;
+      font-family: inherit; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-danger { background: var(--error); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { background: var(--primary); color: white; padding: 0.75rem; text-align: left; font-weight: 600; }
+    td { padding: 0.75rem; border-bottom: 1px solid #e2e8f0; }
+    tr:hover td { background: #f8fafc; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.85rem; }
+    .form-group input { width: 100%; padding: 0.6rem 0.8rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; font-family: inherit; }
+    .form-group input:focus { outline: none; border-color: var(--accent); }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .tab { padding: 0.6rem 1.25rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; border: 2px solid #e2e8f0; background: white; transition: all 0.2s; }
+    .tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .tab:hover:not(.active) { border-color: var(--accent); }
+
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+
+    .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+    .badge-success { background: #e8f5e9; color: #2e7d32; }
+    .badge-warning { background: #fff3e0; color: #e65100; }
+
+    @media (max-width: 768px) {
+      table { font-size: 0.8rem; }
+      th, td { padding: 0.5rem; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🔧 Admin Panel</h1>
+    <button class="btn btn-danger btn-sm" onclick="logout()" id="logout-btn" style="display:none;">Logout</button>
+  </div>
+
+  <!-- Login -->
+  <div id="screen-login" class="screen active">
+    <div class="container">
+      <div class="card" style="max-width:400px; margin:3rem auto;">
+        <h2 style="margin-bottom:1rem; color:var(--primary);">Admin Login</h2>
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="admin-user" placeholder="Username">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div style="position:relative;">
+            <input type="password" id="admin-pass" placeholder="Password" style="padding-right:3rem;">
+            <button type="button" onclick="togglePass('admin-pass', this)" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#64748b;padding:0;">
+              <span class="material-symbols-outlined">visibility</span>
+            </button>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="adminLogin()">Login</button>
+        <p id="login-error" style="color:var(--error); margin-top:0.5rem; display:none;"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="screen-dashboard" class="screen">
+    <div class="container">
+      <div class="stats-grid" id="stats-grid"></div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('results', this)">📋 Αποτελέσματα</div>
+        <div class="tab" onclick="switchTab('study', this)">📚 Μελέτη</div>
+        <div class="tab" onclick="switchTab('questions', this)">📖 Ερωτήσεις</div>
+        <div class="tab" onclick="switchTab('codes', this)">🔑 Κωδικοί</div>
+        <div class="tab" onclick="switchTab('settings', this)">⚙️ Ρυθμίσεις</div>
+      </div>
+
+      <!-- Results Tab -->
+      <div id="tab-results" class="card">
+        <div class="toolbar">
+          <h3>Αποτελέσματα Εξετάσεων</h3>
+          <div>
+            <button class="btn btn-success btn-sm" onclick="exportCSV()">
+              <span class="material-symbols-outlined" style="font-size:16px;">download</span> Export Excel
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="loadSessions()">
+              <span class="material-symbols-outlined" style="font-size:16px;">refresh</span> Refresh
+            </button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <div id="sessions-container"></div>
+        </div>
+      </div>
+
+      <!-- Study Tab -->
+      <div id="tab-study" class="card" style="display:none;">
+        <h3 style="margin-bottom:1rem;">📚 Αποτελέσματα Μελέτης</h3>
+        <div id="study-results"></div>
+      </div>
+
+      <!-- Questions Tab -->
+      <div id="tab-questions" class="card" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+          <h3>📖 Όλες οι Ερωτήσεις</h3>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="btn btn-sm" style="background:#1565c0;color:white;" onclick="filterQs('chemistry')">⚗️ Χημεία</button>
+            <button class="btn btn-sm" style="background:#2e7d32;color:white;" onclick="filterQs('biology')">🧬 Βιολογία</button>
+            <button class="btn btn-sm" style="background:var(--primary);color:white;" onclick="filterQs('all')">Όλες</button>
+          </div>
+        </div>
+        <div style="margin-bottom:1rem;">
+          <input type="text" id="q-search" placeholder="🔍 Αναζήτηση ερώτησης..." oninput="filterQs(currentQFilter)" style="width:100%;padding:0.5rem 0.75rem;border:2px solid #e2e8f0;border-radius:8px;font-size:0.85rem;font-family:inherit;">
+        </div>
+        <div id="q-stats" style="margin-bottom:1rem;"></div>
+        <div id="q-list" style="max-height:500px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- Codes Tab -->
+      <div id="tab-codes" class="card" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+          <h3>🔑 Κωδικοί Τεστ (One-Time)</h3>
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn btn-primary btn-sm" onclick="copyCodes('exam')" style="background:#2e7d32;">📋 Αντιγραφή Τεστ</button>
+            <button class="btn btn-primary btn-sm" onclick="copyCodes('study')" style="background:#1565c0;">📋 Αντιγραφή Μελέτης</button>
+          </div>
+        </div>
+        <div id="codes-stats" style="display:flex; gap:1rem; margin-bottom:1rem;"></div>
+        <div id="codes-list" style="max-height:400px; overflow-y:auto;"></div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div id="tab-settings" class="card" style="display:none;">
+        <h3 style="margin-bottom:1rem;">Ρυθμίσεις</h3>
+        <div class="form-group">
+          <label>Κωδικός Πρόσβασης Τεστ</label>
+          <input type="text" id="setting-code">
+        </div>
+        <div class="form-group">
+          <label>Προεπιλεγμένο Χρονικό Όριο (λεπτά)</label>
+          <input type="number" id="setting-time" min="30" max="120">
+        </div>
+        <button class="btn btn-primary" onclick="saveSettings()">Αποθήκευση</button>
+        <p id="settings-msg" style="color:var(--success); margin-top:0.5rem; display:none;">Αποθηκεύτηκε!</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+  <script>
+    let token = localStorage.getItem('adminToken') || '';
+
+    // Auto-login if token exists
+    if (token) { showDashboard(); }
+
+    function togglePass(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const icon = btn.querySelector('.material-symbols-outlined');
+      if (input.type === 'password') { input.type = 'text'; icon.textContent = 'visibility_off'; }
+      else { input.type = 'password'; icon.textContent = 'visibility'; }
+    }
+
+    async function adminLogin() {
+      const username = document.getElementById('admin-user').value;
+      const password = document.getElementById('admin-pass').value;
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          token = data.token;
+          localStorage.setItem('adminToken', token);
+          showDashboard();
+        } else {
+          document.getElementById('login-error').textContent = 'Wrong credentials';
+          document.getElementById('login-error').style.display = 'block';
+        }
+      } catch (e) {
+        alert('Connection error');
+      }
+    }
+
+    function logout() {
+      token = '';
+      localStorage.removeItem('adminToken');
+      document.getElementById('screen-dashboard').classList.remove('active');
+      document.getElementById('screen-login').classList.add('active');
+      document.getElementById('logout-btn').style.display = 'none';
+    }
+
+    async function showDashboard() {
+      document.getElementById('screen-login').classList.remove('active');
+      document.getElementById('screen-dashboard').classList.add('active');
+      document.getElementById('logout-btn').style.display = 'block';
+      await Promise.all([loadStats(), loadSessions(), loadSettings()]);
+    }
+
+    function authHeaders() {
+      return { 'Authorization': 'Basic ' + token, 'Content-Type': 'application/json' };
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/admin/stats', { headers: authHeaders() });
+        if (res.status === 401) { logout(); return; }
+        const data = await res.json();
+        document.getElementById('stats-grid').innerHTML = `
+          <div class="stat-card"><div class="num">${data.totalExams}</div><div class="label">Συνολικά Τεστ</div></div>
+          <div class="stat-card"><div class="num">${data.averageScore}%</div><div class="label">Μ.Ο. Βαθμολογίας</div></div>
+          <div class="stat-card"><div class="num">${data.averageBiology}/40</div><div class="label">Μ.Ο. Βιολογίας</div></div>
+          <div class="stat-card"><div class="num">${data.averageChemistry}/40</div><div class="label">Μ.Ο. Χημείας</div></div>
+        `;
+      } catch (e) { console.error(e); }
+    }
+
+    async function loadSessions() {
+      try {
+        const res = await fetch('/api/admin/sessions', { headers: authHeaders() });
+        if (res.status === 401) { logout(); return; }
+        const sessions = await res.json();
+        const container = document.getElementById('sessions-container');
+
+        // Group sessions by IP
+        const grouped = {};
+        sessions.forEach(s => {
+          if (!grouped[s.ip_address]) grouped[s.ip_address] = [];
+          grouped[s.ip_address].push(s);
+        });
+
+        let html = '';
+        let userNum = 0;
+        for (const [ip, userSessions] of Object.entries(grouped)) {
+          userNum++;
+          const first = userSessions[0];
+          const totalScore = userSessions.reduce((sum, s) => sum + (s.score || 0), 0);
+          const totalQ = userSessions.length * 80;
+          const avgPercent = totalQ > 0 ? Math.round((totalScore / totalQ) * 100) : 0;
+          const totalUnanswered = userSessions.reduce((sum, s) => sum + (s.unanswered || 0), 0);
+
+          html += `
+          <div style="background:white; border-radius:16px; border:1px solid #e2e8f0; margin-bottom:1.25rem; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            <div style="background:linear-gradient(135deg, #0f2744, #1e3a5f); padding:1rem 1.25rem; color:white; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+              <div>
+                <div style="font-weight:700; font-size:1.05rem;">${first.full_name}</div>
+                <div style="font-size:0.8rem; color:#94a3b8; margin-top:0.2rem;">${first.email} · ${first.phone}</div>
+              </div>
+              <div style="display:flex; gap:1rem; align-items:center;">
+                <div style="text-align:center;">
+                  <div style="font-size:1.5rem; font-weight:800; color:#4fc3f7;">${avgPercent}%</div>
+                  <div style="font-size:0.65rem; color:#94a3b8; text-transform:uppercase;">Μ.Ο.</div>
+                </div>
+                <div style="text-align:center;">
+                  <div style="font-size:1.5rem; font-weight:800; color:white;">${userSessions.length}</div>
+                  <div style="font-size:0.65rem; color:#94a3b8; text-transform:uppercase;">Τεστ</div>
+                </div>
+                ${totalUnanswered > 0 ? `<div style="text-align:center;">
+                  <div style="font-size:1.5rem; font-weight:800; color:#ef5350;">${totalUnanswered}</div>
+                  <div style="font-size:0.65rem; color:#94a3b8; text-transform:uppercase;">Αναπ.</div>
+                </div>` : ''}
+              </div>
+            </div>
+            <div style="padding:0.75rem 1.25rem;">
+              <table style="width:100%; font-size:0.8rem; border-collapse:collapse;">
+                <thead><tr style="border-bottom:2px solid #e2e8f0; color:#64748b;">
+                  <th style="padding:0.4rem 0.5rem; text-align:left; font-weight:600;">Τεστ</th>
+                  <th style="padding:0.4rem 0.5rem; text-align:center; font-weight:600;">Βαθμός</th>
+                  <th style="padding:0.4rem 0.5rem; text-align:center; font-weight:600;">Βιολ.</th>
+                  <th style="padding:0.4rem 0.5rem; text-align:center; font-weight:600;">Χημ.</th>
+                  <th style="padding:0.4rem 0.5rem; text-align:center; font-weight:600;">Αναπ.</th>
+                  <th style="padding:0.4rem 0.5rem; text-align:center; font-weight:600;">%</th>
+                  <th style="padding:0.4rem 0.5rem; text-align:center; font-weight:600;">Ημ/νία</th>
+                  <th style="padding:0.4rem 0.5rem; text-align:center;"></th>
+                </tr></thead>
+                <tbody>${userSessions.map((s, idx) => {
+                  const pct = s.score !== null ? Math.round((s.score / 80) * 100) : 0;
+                  const pctColor = pct >= 70 ? '#4caf50' : pct >= 50 ? '#ff9800' : '#ef5350';
+                  return `<tr style="border-bottom:1px solid #f1f5f9;">
+                    <td style="padding:0.4rem 0.5rem; font-weight:600;">#${idx + 1}</td>
+                    <td style="padding:0.4rem 0.5rem; text-align:center; font-weight:700;">${s.score !== null ? s.score + '/80' : '-'}</td>
+                    <td style="padding:0.4rem 0.5rem; text-align:center;">${s.biology_score !== null ? s.biology_score : '-'}</td>
+                    <td style="padding:0.4rem 0.5rem; text-align:center;">${s.chemistry_score !== null ? s.chemistry_score : '-'}</td>
+                    <td style="padding:0.4rem 0.5rem; text-align:center; color:${s.unanswered > 0 ? '#ef5350' : '#4caf50'}; font-weight:600;">${s.unanswered}</td>
+                    <td style="padding:0.4rem 0.5rem; text-align:center; font-weight:800; color:${pctColor};">${pct}%</td>
+                    <td style="padding:0.4rem 0.5rem; text-align:center; color:#94a3b8;">${s.started_at ? new Date(s.started_at).toLocaleDateString('el-GR') : '-'}</td>
+                    <td style="padding:0.4rem 0.5rem; text-align:center;"><button class="btn btn-sm" style="padding:0.2rem 0.5rem;font-size:0.65rem;background:#ff9800;color:white;" onclick="showWrong(${s.id})">❌</button> <button class="btn btn-danger btn-sm" style="padding:0.2rem 0.5rem; font-size:0.7rem;" onclick="deleteSession(${s.id})">🗑️</button></td>
+                  </tr>`;
+                }).join('')}</tbody>
+              </table>
+            </div>
+          </div>`;
+        }
+        container.innerHTML = html || '<p style="color:#94a3b8; text-align:center; padding:2rem;">Δεν υπάρχουν αποτελέσματα ακόμα.</p>';
+      } catch (e) { console.error(e); }
+    }
+
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/admin/settings', { headers: authHeaders() });
+        const data = await res.json();
+        document.getElementById('setting-code').value = data.access_code || '';
+        document.getElementById('setting-time').value = data.default_time_limit || 120;
+      } catch (e) { console.error(e); }
+    }
+
+    async function saveSettings() {
+      const accessCode = document.getElementById('setting-code').value;
+      const defaultTimeLimit = document.getElementById('setting-time').value;
+      try {
+        await fetch('/api/admin/settings', {
+          method: 'PUT',
+          headers: authHeaders(),
+          body: JSON.stringify({ accessCode, defaultTimeLimit })
+        });
+        const msg = document.getElementById('settings-msg');
+        msg.style.display = 'block';
+        setTimeout(() => msg.style.display = 'none', 3000);
+      } catch (e) { alert('Error saving settings'); }
+    }
+
+    async function showWrong(sessionId) {
+      try {
+        const res = await fetch('/api/admin/sessions/' + sessionId, { headers: authHeaders() });
+        const data = await res.json();
+        const wrong = data.answers.filter(a => a.is_correct === 0 && a.selected_answer);
+        const unanswered = data.answers.filter(a => !a.selected_answer);
+        let html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)this.remove()">';
+        html += '<div style="background:white;border-radius:16px;max-width:700px;width:100%;max-height:80vh;overflow-y:auto;padding:1.5rem;">';
+        html += '<h3 style="color:var(--primary);margin-bottom:1rem;">❌ Λάθος ερωτήσεις (' + wrong.length + ') — ' + data.session.full_name + '</h3>';
+        if (wrong.length === 0) html += '<p style="color:#4caf50;font-weight:600;">Δεν υπάρχουν λάθος απαντήσεις!</p>';
+        wrong.forEach((a, i) => {
+          html += '<div style="background:#fff5f5;border:1px solid #ffcdd2;border-radius:10px;padding:0.75rem;margin-bottom:0.5rem;">';
+          html += '<div style="font-size:0.7rem;color:#ef5350;font-weight:700;">' + (a.category === 'biology' ? '🧬 Βιολογία' : '⚗️ Χημεία') + '</div>';
+          html += '<div style="font-size:0.85rem;font-weight:600;margin:0.25rem 0;">' + a.question_text + '</div>';
+          html += '<div style="font-size:0.8rem;color:#ef5350;">Απάντησε: ' + a.selected_answer + ' — <span style="color:#4caf50;">Σωστή: ' + a.correct_answer + '</span></div>';
+          html += '</div>';
+        });
+        if (unanswered.length > 0) {
+          html += '<h4 style="color:#ff9800;margin:1rem 0 0.5rem;">⚠️ Αναπάντητες (' + unanswered.length + ')</h4>';
+          unanswered.forEach(a => {
+            html += '<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:0.75rem;margin-bottom:0.5rem;">';
+            html += '<div style="font-size:0.7rem;color:#ff9800;font-weight:700;">' + (a.category === 'biology' ? '🧬 Βιολογία' : '⚗️ Χημεία') + '</div>';
+            html += '<div style="font-size:0.85rem;font-weight:600;">' + a.question_text + '</div>';
+            html += '<div style="font-size:0.8rem;color:#4caf50;">Σωστή: ' + a.correct_answer + '</div>';
+            html += '</div>';
+          });
+        }
+        html += '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="margin-top:1rem;background:var(--primary);color:white;border:none;padding:0.5rem 1.5rem;border-radius:8px;cursor:pointer;font-weight:600;">Κλείσιμο</button>';
+        html += '</div></div>';
+        document.body.insertAdjacentHTML('beforeend', html);
+      } catch(e) { alert('Σφάλμα'); }
+    }
+
+    async function deleteSession(id) {
+      if (!confirm('Διαγραφή αυτού του αποτελέσματος;')) return;
+      try {
+        await fetch(`/api/admin/sessions/${id}`, { method: 'DELETE', headers: authHeaders() });
+        await Promise.all([loadStats(), loadSessions()]);
+      } catch (e) { alert('Error'); }
+    }
+
+    function exportCSV() {
+      window.open('/api/admin/export-csv?auth=' + token);
+      // Alternative: direct download with auth header
+      fetch('/api/admin/export-csv', { headers: authHeaders() })
+        .then(r => r.blob())
+        .then(blob => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'exam-results.csv';
+          a.click();
+          URL.revokeObjectURL(url);
+        });
+    }
+
+    function switchTab(tab, el) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('tab-results').style.display = tab === 'results' ? 'block' : 'none';
+      document.getElementById('tab-study').style.display = tab === 'study' ? 'block' : 'none';
+      document.getElementById('tab-questions').style.display = tab === 'questions' ? 'block' : 'none';
+      document.getElementById('tab-codes').style.display = tab === 'codes' ? 'block' : 'none';
+      document.getElementById('tab-settings').style.display = tab === 'settings' ? 'block' : 'none';
+      if (tab === 'study') loadStudyStats();
+      if (tab === 'codes') loadCodes();
+      if (tab === 'questions') loadQuestions();
+    }
+
+    let allCodes = [];
+    async function loadCodes() {
+      try {
+        const res = await fetch('/api/admin/codes', { headers: authHeaders() });
+        const data = await res.json();
+        allCodes = data.codes;
+        document.getElementById('codes-stats').innerHTML = `
+          <div style="background:#e8f5e9;border-radius:10px;padding:0.75rem 1.25rem;flex:1;text-align:center;">
+            <div style="font-size:1.5rem;font-weight:800;color:#2e7d32;">${data.codes.filter(c=>!c.used&&c.type==='exam').length}</div>
+            <div style="font-size:0.75rem;color:#64748b;">Τεστ (MED)</div>
+          </div>
+          <div style="background:#e3f2fd;border-radius:10px;padding:0.75rem 1.25rem;flex:1;text-align:center;">
+            <div style="font-size:1.5rem;font-weight:800;color:#1565c0;">${data.codes.filter(c=>!c.used&&c.type==='study').length}</div>
+            <div style="font-size:0.75rem;color:#64748b;">Μελέτη (STD)</div>
+          </div>
+          <div style="background:#ffebee;border-radius:10px;padding:0.75rem 1.25rem;flex:1;text-align:center;">
+            <div style="font-size:1.5rem;font-weight:800;color:#ef5350;">${data.used}</div>
+            <div style="font-size:0.75rem;color:#64748b;">Χρησιμοποιημένοι</div>
+          </div>`;
+        const examCodes = data.codes.filter(c => !c.used && c.type === 'exam');
+        const studyCodes = data.codes.filter(c => !c.used && c.type === 'study');
+        const maxLen = Math.max(examCodes.length, studyCodes.length);
+        document.getElementById('codes-list').innerHTML = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div>
+              <h4 style="font-size:0.85rem;font-weight:700;color:#2e7d32;margin-bottom:0.5rem;text-align:center;">📝 Τεστ (MED) — ${examCodes.length}</h4>
+              <div style="max-height:350px;overflow-y:auto;background:#f8faf8;border-radius:8px;padding:0.5rem;">
+                ${examCodes.map((c,i) => `<div style="font-family:monospace;font-size:0.75rem;font-weight:600;padding:0.2rem 0.4rem;color:#2e7d32;display:flex;justify-content:space-between;align-items:center;">${c.code}<button onclick="navigator.clipboard.writeText('${c.code}');this.textContent='✅';setTimeout(()=>this.textContent='📋',1000)" style="background:none;border:none;cursor:pointer;font-size:0.7rem;padding:0.1rem;">📋</button></div>`).join('')}
+                ${data.codes.filter(c=>c.used&&c.type==='exam').map(c => `<div style="font-family:monospace;font-size:0.7rem;padding:0.2rem 0.4rem;color:#ccc;text-decoration:line-through;display:flex;justify-content:space-between;"><span>${c.code}</span><span style="font-size:0.6rem;color:#94a3b8;text-decoration:none;">${c.used_by||''}</span></div>`).join('')}
+              </div>
+            </div>
+            <div>
+              <h4 style="font-size:0.85rem;font-weight:700;color:#1565c0;margin-bottom:0.5rem;text-align:center;">📚 Μελέτη (STD) — ${studyCodes.length}</h4>
+              <div style="max-height:350px;overflow-y:auto;background:#f0f4ff;border-radius:8px;padding:0.5rem;">
+                ${studyCodes.map((c,i) => `<div style="font-family:monospace;font-size:0.75rem;font-weight:600;padding:0.2rem 0.4rem;color:#1565c0;display:flex;justify-content:space-between;align-items:center;">${c.code}<button onclick="navigator.clipboard.writeText('${c.code}');this.textContent='✅';setTimeout(()=>this.textContent='📋',1000)" style="background:none;border:none;cursor:pointer;font-size:0.7rem;padding:0.1rem;">📋</button></div>`).join('')}
+                ${data.codes.filter(c=>c.used&&c.type==='study').map(c => `<div style="font-family:monospace;font-size:0.7rem;padding:0.2rem 0.4rem;color:#ccc;text-decoration:line-through;display:flex;justify-content:space-between;"><span>${c.code}</span><span style="font-size:0.6rem;color:#94a3b8;text-decoration:none;">${c.used_by||''}</span></div>`).join('')}
+              </div>
+            </div>
+          </div>`;
+        if (data.available === 0) document.getElementById('codes-list').innerHTML = '<p style="color:#94a3b8;text-align:center;padding:1rem;">Δεν υπάρχουν διαθέσιμοι κωδικοί.</p>';
+      } catch (e) { console.error(e); }
+    }
+
+    function copyCodes(type) {
+      const label = type === 'exam' ? 'Τεστ' : 'Μελέτης';
+      const available = allCodes.filter(c => !c.used && c.type === type).map(c => c.code);
+      navigator.clipboard.writeText(available.join('\n')).then(() => alert('Αντιγράφηκαν ' + available.length + ' κωδικοί ' + label + '!'));
+    }
+
+    async function loadStudyStats() {
+      try {
+        const res = await fetch('/api/admin/study-stats', { headers: authHeaders() });
+        const data = await res.json();
+        const totalBio = data.totalBio || 0;
+        const totalChem = data.totalChem || 0;
+        const grouped = {};
+        (data.users || []).forEach(r => {
+          const key = r.full_name + '|' + (r.email || '');
+          if (!grouped[key]) grouped[key] = { name: r.full_name, email: r.email || '-', cats: {} };
+          grouped[key].cats[r.category] = { total: r.total, correct: r.correct };
+        });
+        let html = '';
+        for (const [key, user] of Object.entries(grouped)) {
+          const bio = user.cats.biology || { total: 0, correct: 0 };
+          const chem = user.cats.chemistry || { total: 0, correct: 0 };
+          const bioPct = bio.total > 0 ? Math.round((bio.correct / bio.total) * 100) : 0;
+          const chemPct = chem.total > 0 ? Math.round((chem.correct / chem.total) * 100) : 0;
+          const bioComplete = bio.total >= totalBio && totalBio > 0;
+          const chemComplete = chem.total >= totalChem && totalChem > 0;
+          html += `<div style="background:white;border-radius:12px;border:1px solid #e2e8f0;padding:1rem;margin-bottom:0.75rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+              <div>
+                <div style="font-weight:700;font-size:1rem;color:var(--primary);">${user.name}</div>
+                <div style="font-size:0.8rem;color:#64748b;">${user.email}</div>
+              </div>
+              <div style="text-align:center;background:linear-gradient(135deg,#0f2744,#1e3a5f);border-radius:10px;padding:0.5rem 1rem;color:white;">
+                <div style="font-size:1.5rem;font-weight:800;">${Math.round(((bio.correct+chem.correct)/Math.max(bio.total+chem.total,1))*100)}%</div>
+                <div style="font-size:0.6rem;color:#94a3b8;">ΣΥΝΟΛΙΚΑ ${bio.correct+chem.correct}/${bio.total+chem.total}</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+              <div style="background:#e8f5e9;border-radius:8px;padding:0.75rem;text-align:center;">
+                <div style="font-size:0.75rem;color:#2e7d32;font-weight:600;">🧬 Βιολογία ${bioComplete ? '✅' : ''}</div>
+                <div style="font-size:1.25rem;font-weight:800;color:#2e7d32;">${bioPct}%</div>
+                <div style="font-size:0.7rem;color:#64748b;">${bio.correct}/${bio.total} από ${totalBio}</div>
+                ${bioComplete ? '<div style="font-size:0.65rem;color:#2e7d32;font-weight:700;margin-top:0.25rem;">Ολοκληρώθηκε</div>' : '<div style="font-size:0.65rem;color:#94a3b8;margin-top:0.25rem;">Σε εξέλιξη</div>'}
+              </div>
+              <div style="background:#e3f2fd;border-radius:8px;padding:0.75rem;text-align:center;">
+                <div style="font-size:0.75rem;color:#1565c0;font-weight:600;">⚗️ Χημεία ${chemComplete ? '✅' : ''}</div>
+                <div style="font-size:1.25rem;font-weight:800;color:#1565c0;">${chemPct}%</div>
+                <div style="font-size:0.7rem;color:#64748b;">${chem.correct}/${chem.total} από ${totalChem}</div>
+                ${chemComplete ? '<div style="font-size:0.65rem;color:#1565c0;font-weight:700;margin-top:0.25rem;">Ολοκληρώθηκε</div>' : '<div style="font-size:0.65rem;color:#94a3b8;margin-top:0.25rem;">Σε εξέλιξη</div>'}
+              </div>
+            </div>
+            <div style="text-align:center;margin-top:0.75rem;">
+              <button onclick="showStudyWrong('${user.name.replace(/'/g,"\\'")}','${user.email.replace(/'/g,"\\'")}')" style="background:#ff9800;color:white;border:none;padding:0.4rem 1rem;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;">❌ Λάθος ερωτήσεις</button>
+            </div>
+          </div>`;
+        }
+        document.getElementById('study-results').innerHTML = html || '<p style="color:#94a3b8;">Δεν υπάρχουν δεδομένα μελέτης ακόμα.</p>';
+      } catch (e) { console.error(e); }
+    }
+
+    let allAdminQs = [];
+    let currentQFilter = 'all';
+
+    async function loadQuestions() {
+      try {
+        const res = await fetch('/api/study-questions');
+        const data = await res.json();
+        allAdminQs = data.questions;
+        document.getElementById('q-stats').innerHTML = `
+          <div style="display:flex;gap:0.75rem;">
+            <span style="font-size:0.8rem;font-weight:600;color:#1565c0;">⚗️ Χημεία: ${data.chemistryCount}</span>
+            <span style="font-size:0.8rem;font-weight:600;color:#2e7d32;">🧬 Βιολογία: ${data.biologyCount}</span>
+            <span style="font-size:0.8rem;font-weight:600;color:var(--primary);">Σύνολο: ${data.biologyCount + data.chemistryCount}</span>
+          </div>`;
+        filterQs('all');
+      } catch(e) { console.error(e); }
+    }
+
+    function filterQs(cat) {
+      currentQFilter = cat;
+      const search = (document.getElementById('q-search')?.value || '').toLowerCase();
+      const filtered = allAdminQs.filter(q =>
+        (cat === 'all' || q.category === cat) &&
+        (search === '' || q.question_text.toLowerCase().includes(search))
+      ).sort((a, b) => {
+        if (a.category === b.category) return a.id - b.id;
+        return a.category === 'chemistry' ? -1 : 1;
+      });
+      document.getElementById('q-list').innerHTML = filtered.map((q, i) => `
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:0.75rem;margin-bottom:0.5rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
+            <span style="font-size:0.65rem;font-weight:700;color:#94a3b8;">#${i + 1}</span>
+            <span style="font-size:0.65rem;font-weight:600;padding:0.1rem 0.4rem;border-radius:4px;${q.category==='biology'?'background:#e8f5e9;color:#2e7d32;':'background:#e3f2fd;color:#1565c0;'}">${q.category==='biology'?'Βιολογία':'Χημεία'}</span>
+          </div>
+          <div style="font-size:0.85rem;font-weight:600;margin-bottom:0.5rem;">${q.question_text}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.25rem;font-size:0.75rem;">
+            <div style="padding:0.25rem 0.4rem;border-radius:4px;${q.correct_answer==='A'?'background:#e8f5e9;color:#2e7d32;font-weight:700;':'color:#64748b;'}">A: ${q.option_a}</div>
+            <div style="padding:0.25rem 0.4rem;border-radius:4px;${q.correct_answer==='B'?'background:#e8f5e9;color:#2e7d32;font-weight:700;':'color:#64748b;'}">B: ${q.option_b}</div>
+            <div style="padding:0.25rem 0.4rem;border-radius:4px;${q.correct_answer==='C'?'background:#e8f5e9;color:#2e7d32;font-weight:700;':'color:#64748b;'}">C: ${q.option_c}</div>
+            <div style="padding:0.25rem 0.4rem;border-radius:4px;${q.correct_answer==='D'?'background:#e8f5e9;color:#2e7d32;font-weight:700;':'color:#64748b;'}">D: ${q.option_d}</div>
+          </div>
+        </div>
+      `).join('') || '<p style="color:#94a3b8;text-align:center;">Δεν βρέθηκαν ερωτήσεις.</p>';
+    }
+
+    async function showStudyWrong(name, email) {
+      try {
+        const res = await fetch('/api/admin/study-wrong/' + encodeURIComponent(name), { headers: authHeaders() });
+        const wrong = await res.json();
+        let html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)this.remove()">';
+        html += '<div style="background:white;border-radius:16px;max-width:700px;width:100%;max-height:80vh;overflow-y:auto;padding:1.5rem;">';
+        html += '<h3 style="color:var(--primary);margin-bottom:0.25rem;">❌ Λάθος ερωτήσεις — ' + name + '</h3>';
+        html += '<p style="color:#64748b;font-size:0.8rem;margin-bottom:1rem;">' + email + ' · ' + wrong.length + ' λάθος</p>';
+        if (wrong.length === 0) html += '<p style="color:#4caf50;font-weight:600;">Δεν υπάρχουν λάθος απαντήσεις!</p>';
+        wrong.forEach(a => {
+          html += '<div style="background:#fff5f5;border:1px solid #ffcdd2;border-radius:10px;padding:0.75rem;margin-bottom:0.5rem;">';
+          html += '<div style="font-size:0.7rem;color:#ef5350;font-weight:700;">' + (a.category === 'biology' ? '🧬 Βιολογία' : '⚗️ Χημεία') + '</div>';
+          html += '<div style="font-size:0.85rem;font-weight:600;margin:0.25rem 0;">' + a.question_text + '</div>';
+          html += '<div style="font-size:0.8rem;color:#ef5350;">Απάντησε: ' + a.selected_answer + ' — <span style="color:#4caf50;">Σωστή: ' + a.correct_answer + '</span></div>';
+          html += '</div>';
+        });
+        html += '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="margin-top:1rem;background:var(--primary);color:white;border:none;padding:0.5rem 1.5rem;border-radius:8px;cursor:pointer;font-weight:600;">Κλείσιμο</button>';
+        html += '</div></div>';
+        document.body.insertAdjacentHTML('beforeend', html);
+      } catch(e) { alert('Σφάλμα'); }
+    }
+
+    // Enter key for login
+    document.getElementById('admin-pass').addEventListener('keypress', e => {
+      if (e.key === 'Enter') adminLogin();
+    });
+  </script>

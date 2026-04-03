@@ -1,0 +1,31 @@
+console.log('LOADING DB');
+var Database = require('better-sqlite3');
+var path = require('path');
+var crypto = require('crypto');
+var db = new Database(path.join(__dirname, 'exam.db'));
+db.pragma('journal_mode = WAL');
+db.exec("CREATE TABLE IF NOT EXISTS questions (id INTEGER PRIMARY KEY AUTOINCREMENT, category TEXT NOT NULL, question_text TEXT NOT NULL, option_a TEXT NOT NULL, option_b TEXT NOT NULL, option_c TEXT NOT NULL, option_d TEXT NOT NULL, correct_answer TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)");
+db.exec("CREATE TABLE IF NOT EXISTS exam_sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, full_name TEXT NOT NULL, email TEXT NOT NULL, phone TEXT NOT NULL, ip_address TEXT NOT NULL, time_limit_minutes INTEGER NOT NULL DEFAULT 90, score INTEGER, total_questions INTEGER DEFAULT 80, biology_score INTEGER, chemistry_score INTEGER, started_at DATETIME DEFAULT CURRENT_TIMESTAMP, completed_at DATETIME, status TEXT DEFAULT 'in_progress')");
+db.exec("CREATE TABLE IF NOT EXISTS exam_answers (id INTEGER PRIMARY KEY AUTOINCREMENT, session_id INTEGER NOT NULL, question_id INTEGER NOT NULL, selected_answer TEXT, is_correct INTEGER)");
+db.exec("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)");
+db.exec("CREATE TABLE IF NOT EXISTS admin_users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, password TEXT NOT NULL)");
+db.exec("CREATE TABLE IF NOT EXISTS study_answers (id INTEGER PRIMARY KEY AUTOINCREMENT, full_name TEXT NOT NULL, email TEXT, question_id INTEGER NOT NULL, selected_answer TEXT NOT NULL, is_correct INTEGER NOT NULL, category TEXT NOT NULL, answered_at DATETIME DEFAULT CURRENT_TIMESTAMP)");
+db.exec("CREATE TABLE IF NOT EXISTS exam_codes (id INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT NOT NULL UNIQUE, type TEXT NOT NULL DEFAULT 'exam', used INTEGER DEFAULT 0, used_by TEXT, used_at DATETIME)");
+console.log('TABLES OK');
+var accessCode = process.env.ACCESS_CODE || 'Medtest2026';
+db.prepare('DELETE FROM settings WHERE key = ?').run('access_code');
+db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)').run('access_code', accessCode);
+db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)').run('default_time_limit', '90');
+var adminUser = process.env.ADMIN_USER || 'admin';
+var adminPass = process.env.ADMIN_PASS || 'admin123';
+db.prepare('DELETE FROM admin_users').run();
+db.prepare('INSERT INTO admin_users (username, password) VALUES (?, ?)').run(adminUser, adminPass);
+var codeCount = db.prepare('SELECT COUNT(*) as c FROM exam_codes').get().c;
+if (codeCount === 0) {
+  var ins = db.prepare('INSERT INTO exam_codes (code, type) VALUES (?, ?)');
+  for (var i = 0; i < 2000; i++) ins.run('MED-' + crypto.randomBytes(3).toString('hex').toUpperCase(), 'exam');
+  for (var j = 0; j < 2000; j++) ins.run('STD-' + crypto.randomBytes(3).toString('hex').toUpperCase(), 'study');
+  console.log('Generated 4000 codes');
+}
+console.log('DB ready | Admin:', adminUser, '| Codes:', db.prepare('SELECT COUNT(*) as c FROM exam_codes').get().c);
+module.exports = db;
